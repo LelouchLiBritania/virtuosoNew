@@ -1,0 +1,8 @@
+dataToLoad/
+dumps/
+
+virtuoso.db
+virtuoso.log
+virtuoso-temp.db
+virtuoso.trx
+virtuoso.pxa

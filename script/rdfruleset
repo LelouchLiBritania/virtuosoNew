@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Virtuoso			Set Rule Script
+#
+# Description: rdf rule set for Virtuoso
+# Usage: rdfruleset  [rulename] [graph_uri] [log_file] [virtuoso_password]
+# Exemple : rdfs_rule_set ('urn:owl:inference:rules:records', 'http://data.alegoria-project.fr/id/anf/vocabularies/') ;
+
+# Get input arguments
+args=("$@")
+if [ $# -ne 4 ]; then
+    echo "Wrong number of arguments. Correct usage: \"rdfruleset  [rulename] [graph_uri] [log_file] [virtuoso_password]\""
+else
+    rule_name=${args[0]} 
+    graph_uri=${args[1]}
+    LOGFILE=${args[2]}
+    VIRT_PSWD=${args[3]}
+
+    # Status message
+    echo "set rule <$rule_name> in graph <$graph_uri>..."
+
+    # Log into Virtuoso isql env
+    isql_cmd="isql-v -U dba -P $VIRT_PSWD"
+
+    # Build the Virtuoso commands
+    set_rule = "rdfs_rule_set ('$rule_name', '$graph_uri');"
+    select_func="SELECT * FROM sys_rdf_schema;"
+   
+    # Run the Virtuoso commands
+    ${isql_cmd} << EOF &> ${LOGFILE}
+	    $set_rule
+            $select_func   
+            exit;
+EOF
+
+    # Write the load commands to the log 
+    echo "----------" >> ${LOGFILE}
+    echo $set_rule >> ${LOGFILE}
+    echo ${select_func} >> ${LOGFILE}
+    echo "----------" >> ${LOGFILE}
+    
+    # Print out the log file
+    cat ${LOGFILE}
+
+    result=$?
+
+    if [ $result != 0 ]
+    then
+        "Failed to set rule! Check ${LOGFILE} for details."
+        exit 1
+    fi
+
+    
+    # Status message
+    echo "Set rule finished! Check ${LOGFILE} for details."
+    exit 0
+fi
+
